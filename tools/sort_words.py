@@ -34,9 +34,9 @@ def get_scores(words, freq, pos_freq):
     return scores
 
 
-def sort_words(fileName):
+def sort_words(file_path):
     # Get all unique words from the text file and store them in an array
-    original_file = open(fileName, 'r', encoding='utf-8')
+    original_file = open(file_path, 'r', encoding='utf-8')
     words = list(set(original_file.read().splitlines()))
 
     # Assign a score to each word based on the frequencies of characters
@@ -49,7 +49,7 @@ def sort_words(fileName):
     freq_sorted = [word for word, score in merged]
 
     # Write the words in order in a new file
-    new_file = open(fileName.replace('.txt', '-sorted.txt'), 'w', encoding='utf-8')
+    new_file = open(file_path.replace('.txt', '-sorted.txt'), 'w', encoding='utf-8')
     new_file.truncate()
     for word in freq_sorted:
             new_file.write(word+'\n')

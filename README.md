@@ -1,5 +1,9 @@
 # Wordle Auto Solver
 ![](/res/title.png)
+
+> [!WARNING]  
+> This repository is currently under active development, run the code at your own risk
+
 ## Description
 This repository contains a Wordle Auto Solver, a tool designed to automate the solving of Wordle puzzles. The approach used in this solver is inspired by the methods discussed by *Games Computer Play* in his YouTube videos:
 - [Simulating Wordle: in search of the perfect strategy](https://youtu.be/ZCSajRqzYyg?si=3bOTbp9qbbUQmoCU)

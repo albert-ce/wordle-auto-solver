@@ -1,10 +1,10 @@
 import pyautogui
 import time
 import keyboard
-import math
+import sys
 
 # Configurable settings
-    
+
 # The default settings are set to solve this wordle webpage https://wordlegame.org/es
 initX = 1245
 initY = 228
@@ -19,111 +19,92 @@ letterNum = 5
 columnNum = 6
 language = 'spanish'
 
-letterLists = [[],[],[]]
+# The proper time delays depend on the duration of the animations of the webpage
+# The ones set work perfectly with https://wordlegame.org/es
+delay1 = 0.25
+delay2 = 1
+delay3 = 2
 
-# Import of a text file with all the words ordered by the frequencies of their characters    
+# Import of a text file with all the words ordered by the frequencies of their characters
 dictWords = open('res/'+language+'-dict-5-sorted.txt', 'r', encoding='utf-8')
 dictWords = dictWords.read().splitlines()
 
 botStop = False
 
+
 def wordleBot():
-
-    print("\nPress '"+startKey+"' to start the bot")
-    print("Keep '"+stopKey+"' pressed to stop")
-    keyboard.wait('shift')
-
+    initialPrints()
     while not botStop:
-
-        botWorking(initialGuess)
-
+        solve(initialGuess)
         if not botStop:
-            time.sleep(2)
+            time.sleep(delay3)
             pyautogui.press('enter')
-            time.sleep(1)
-            global letterLists
-            letterLists = [[],[],[]]
+            time.sleep(delay2)
+
 
 def stopBot(e):
     global botStop
     if e.event_type == keyboard.KEY_DOWN and e.name == stopKey:
         botStop = True
 
-def botWorking(initialGuess):
-    guess = initialGuess
+
+def solve(guess=initialGuess):
     posY = initY
+    letterLists = [[], [], []]
     greyLetters, yellowLetters, greenLetters = letterLists
-    notExists = []
+    checkedWords = []
+    win = False
 
     while not botStop:
-
         validGuess = False
+
         while(not validGuess):
+            # Ensure the script writes the words in the correct window
             pyautogui.click(x=initX, y=initY)
             keyboard.write(guess)
-
-            # The proper time delays depend on the duration of the animations of the webpage
-            # The ones set work perfectly with https://wordlegame.org/es
-            time.sleep(0.25)
+            time.sleep(delay1)
             pyautogui.press('enter')
-            time.sleep(1)
-            validGuess = classifyLetters(guess, posY)
-            if not validGuess:
-                notExists.append(guess)
-                if selectOption(notExists) != None:
-                    guess = selectOption(notExists)
-                pyautogui.press('backspace', presses=5)
+            time.sleep(delay2)
+            checkedWords.append(guess)
+            validGuess = classifyLetters(guess, posY, letterLists)
 
-        print("\nLetter detection:")
-        print("grey: "+', '.join(greyLetters))
-        print("yellow: "+', '.join([yellow.char for yellow in yellowLetters]))
-        print("green: "+', '.join([green.char for green in greenLetters])+'\n')
+            if not validGuess:
+                pyautogui.press('backspace', presses=letterNum)
+                guess = selectOption(letterLists, checkedWords)
+
+        print("Letter detection:")
+        print("Grey: "+', '.join(greyLetters))
+        print("Yellow: "+', '.join([yellow.char for yellow in yellowLetters]))
+        print("Green: "+', '.join([green.char for green in greenLetters])+'\n')
 
         posY += letterHeight
-
         if len(greenLetters) >= letterNum:
             print(" -- WON --\n")
+            win = True
             break
-
-        if posY > initY + letterHeight*columnNum-1 and len(greenLetters) < letterNum:
+        elif posY > initY + letterHeight*columnNum-1:
             print(" -- LOST --\n")
             break
 
-        if selectOption(notExists) != None:
-            guess = selectOption(notExists)
-
-
+        guess = selectOption(letterLists, checkedWords)
         print("Guess selection:")
-        print(guess.upper())
+        print(guess.upper()+'\n')
 
         if botStop:
             print("Stopped sucessfully")
 
-
-class letter:
-    def __init__(self, char, index):
-        self.char = char
-        self.index = index
-
-    def __eq__(self, other): 
-        if isinstance(other, letter):
-            return self.char == other.char and self.index == other.index
-        elif isinstance(other, str):
-            return self.char == other
-        else:
-            return False
-    
-    def __hash__(self):
-        return hash((self.char, self.index))
-
-    def __contains__(self, char):
-        if isinstance(char, str):
-            return self.char == char
-        else:
-            return False
+    return win
 
 
-def classifyLetters(guess, posY):
+def multiIndexOf(array, element):
+    idxs = []
+    for i in range(len(array)):
+        if array[i] == element:
+            idxs.append(i)
+    return idxs
+
+
+def classifyLetters(guess, posY, letterLists):
     greyLetters, yellowLetters, greenLetters = letterLists
     for i in range(letterNum):
         posX = initX + letterWidth*i
@@ -136,7 +117,7 @@ def classifyLetters(guess, posY):
                 greyLetters.append(currentChar)
 
         elif color == rgbYellow:
-            # It must be able to store more than one letter because the same character can have different indexes
+            # It must be able to store same characters with different indexes
             if letterObject not in yellowLetters:
                 yellowLetters.append(letterObject)
                 if currentChar in greyLetters:
@@ -147,23 +128,16 @@ def classifyLetters(guess, posY):
                 greenLetters.append(letterObject)
                 if currentChar in greyLetters:
                     greyLetters.remove(currentChar)
-        else:
+        # An uncolored last character means character/word recognision failure
+        elif i == letterNum-1:
             return False
     return True
 
 
-def multiIndexOf(array, element):
-    idxs = []
-    for i in range(len(array)):
-        if array[i] == element:
-            idxs.append(i)
-    return idxs
-
-
-def selectOption(notExists):
+def selectOption(letterLists, checkedWords):
     greyLetters, yellowLetters, greenLetters = letterLists
     for word in dictWords:
-        if word not in notExists:
+        if word not in checkedWords:
             for grey in greyLetters:
                 if grey in word:
                     break
@@ -181,6 +155,55 @@ def selectOption(notExists):
                             break 
                     else:                     
                         return word
+    raise Exception("Unable to find any words")
+
+
+def printBoxed(word):
+    word = word.upper()
+    for letter in word:
+        print('┌───┐ ', end='')
+    print()
+    for letter in word:
+        print('│ {} │ '.format(letter), end='')
+    print()
+    for letter in word:
+        print('└───┘ ', end='')
+    print()
+
+
+def initialPrints():
+    printBoxed('Wordle')
+    printBoxed('Auto')
+    printBoxed('Solver')
+    print('-'*35)
+    print("  Press '"+startKey+"' to start the bot")
+    print("  Keep '"+stopKey+"' pressed to stop")
+    print('-'*35+'\n')
+    keyboard.wait('shift')
+
+
+class letter:
+    def __init__(self, char, index):
+        self.char = char
+        self.index = index
+
+    def __eq__(self, other): 
+        if isinstance(other, letter):
+            return self.char == other.char and self.index == other.index
+        elif isinstance(other, str):
+            return self.char == other
+        else:
+            return False
+
+    def __hash__(self):
+        return hash((self.char, self.index))
+
+    def __contains__(self, char):
+        if isinstance(char, str):
+            return self.char == char
+        else:
+            return False
+
 
 if __name__ == '__main__':
     keyboard.hook(stopBot)
