@@ -1,3 +1,6 @@
 .pytest_cache/
 .vscode/
 **/__pycache__/
+tests/*
+!tests/test_*
+notes.txt

@@ -1,4 +1,6 @@
 import sys
+from add_no_accent import add_no_accent
+from add_plurals import add_plurals
 
 default_val = 'res/spanish-dict-5.txt'
 
@@ -34,7 +36,7 @@ def get_scores(words, freq, pos_freq):
     return scores
 
 
-def sort_words(file_path):
+def sort_words(file_path=default_val):
     # Get all unique words from the text file and store them in an array
     original_file = open(file_path, 'r', encoding='utf-8')
     words = list(set(original_file.read().splitlines()))
@@ -53,6 +55,13 @@ def sort_words(file_path):
     new_file.truncate()
     for word in freq_sorted:
             new_file.write(word+'\n')
+    
+    new_file.close()
+
+    if file_path == 'res/spanish-dict-5.txt':
+        add_no_accent()
+        add_plurals()
+
 
 if __name__ == '__main__':
     try: 

@@ -4231,6 +4231,7 @@ eluya
 eluye
 eluyo
 eluyó
+email
 emana
 emaná
 emane
@@ -10799,6 +10800,7 @@ solio
 solió
 solla
 sollo
+(solo
 soltá
 solté
 soltó

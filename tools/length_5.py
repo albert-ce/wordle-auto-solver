@@ -2,11 +2,11 @@ import sys
 default_val = 'res/english-dict.txt'
 
 def lenght_5(fileName):
-    original_file = open(fileName, 'rt')
-    new_file = open(fileName.replace('.txt', '-5.txt'), 'w')
+    original_file = open(fileName, 'rt', encoding='utf-8')
+    new_file = open(fileName.replace('.txt', '-5.txt'), 'w', encoding='utf-8')
     new_file.truncate()
 
-    for word in list(set(original_file.read().splitlines())):
+    for word in original_file.read().splitlines():
         if len(word) == 5:
             new_file.write(word+'\n')
 

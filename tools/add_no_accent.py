@@ -2,7 +2,7 @@ import sys
 
 default_val = 'res/spanish-dict-5-sorted.txt'
 
-def add_no_accent(file_path):
+def add_no_accent(file_path=default_val):
     new_words = []
     
     file = open(file_path, 'r+', encoding='utf-8')
@@ -23,7 +23,4 @@ def add_no_accent(file_path):
 
 
 if __name__ == '__main__':
-    try: 
-        add_no_accent(sys.argv[1] if len(sys.argv)==2 else default_val)
-    except:
-        print('Error: No such file: \''+sys.argv[1]+'\'')
+    add_no_accent()
